@@ -1115,7 +1115,8 @@ class Airflow(BaseView):
         if not base_date:
             # New DAGs will not have a latest execution date
             if dag.latest_execution_date:
-                base_date = dag.latest_execution_date + 2 * dag.schedule_interval
+                dt = dag.following_schedule(dag.latest_execution_date)
+                base_date = dag.following_schedule(dt)
             else:
                 base_date = datetime.now()
         else:
@@ -1135,7 +1136,9 @@ class Airflow(BaseView):
 
         form = TreeForm(data={'base_date': base_date, 'num_runs': num_runs})
 
-        from_date = (base_date - (num_runs * dag.schedule_interval))
+        from_date = base_date
+        for i in range(num_runs):
+            from_date = dag.previous_schedule(from_date)
 
         dates = utils.date_range(
             from_date, base_date, dag.schedule_interval)
