@@ -1688,6 +1688,7 @@ def nobr_f(v, c, m, p):
 
 class DagRunModelView(ModelViewOnly):
     verbose_name_plural = "DAG Runs"
+    can_delete = True
     verbose_name = "dag run"
     column_list = (
         'state', 'dag_id', 'execution_date', 'run_id', 'external_trigger')
