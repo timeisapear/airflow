@@ -1686,6 +1686,21 @@ def nobr_f(v, c, m, p):
     return Markup("<nobr>{}</nobr>".format(getattr(m, p)))
 
 
+class DagRunModelView(ModelViewOnly):
+    verbose_name_plural = "DAG Runs"
+    verbose_name = "dag run"
+    column_list = (
+        'state', 'dag_id', 'execution_date', 'run_id', 'external_trigger')
+    column_filters = column_list
+    column_searchable_list = ('dag_id', 'state', 'run_id')
+    column_formatters = dict(
+        execution_date=datetime_f,
+        state=state_f,
+        start_date=datetime_f,
+        dag_id=dag_link)
+mv = DagRunModelView(models.DagRun, Session, name="DAG Runs", category="Browse")
+admin.add_view(mv)
+
 
 
 class JobModelView(ModelViewOnly):
