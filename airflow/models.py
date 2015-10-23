@@ -174,6 +174,7 @@ class DagBag(object):
                 logging.info("Importing " + filepath)
                 if mod_name in sys.modules:
                     del sys.modules[mod_name]
+                # SIGALRM is not supported in windows, workaround for now assume user writes reasonably parseable script
                 # with utils.timeout(30):
                 m = imp.load_source(mod_name, filepath)
             except Exception as e:
@@ -518,7 +519,8 @@ class TaskInstance(Base):
             subdir = "-sd DAGS_FOLDER/{0}".format(self.task.dag.filepath)
 
         execute = ""
-        if conf.get('core', 'PYTHON_PATH') and conf.get('core', 'AIRFLOW_PATH'):
+        # can't think of how to get remote/local executors to execute CLI without making a windows executeable (unsuccessful so far)
+        if os.name == 'nt'and conf.get('core', 'PYTHON_PATH') and conf.get('core', 'AIRFLOW_PATH'):
             execute = conf.get('core', 'PYTHON_PATH') + " " + conf.get('core', 'AIRFLOW_PATH') + " run "
         else:
             execute = "airflow run "
@@ -1875,12 +1877,9 @@ class DAG(object):
         """
         File location of where the dag object is instantiated
         """
+        # use python os library to find the dag path
         drive, path_and_file = os.path.splitdrive(self.full_filepath)
         path, fn = os.path.split(path_and_file)
-        # fn = self.full_filepath.replace(DAGS_FOLDER + re.'/', '')
-        # print("fn", fn)
-        # fn = fn.replace(os.path.dirname(__file__) + '/', '')
-        # print("fn", fn)
         return fn
 
     @property

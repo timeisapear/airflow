@@ -76,6 +76,7 @@ def run(args):
         os.makedirs(directory)
     args.execution_date = dateutil.parser.parse(args.execution_date)
     iso = args.execution_date.isoformat()
+    # windows does not support colon in filepath
     iso = iso.replace(":","_")
     filename = "{directory}/{iso}".format(**locals())
     subdir = None
