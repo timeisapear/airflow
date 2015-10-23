@@ -1675,7 +1675,16 @@ def nobr_f(v, c, m, p):
 class DagRunModelView(ModelViewOnly):
     verbose_name_plural = "DAG Runs"
     can_delete = True
+    can_edit = True
+    column_editable_list = ('state',)
     verbose_name = "dag run"
+    form_choices = {
+        'state': [
+            ('success', 'success'),
+            ('running', 'running'),
+            ('failed', 'failed'),
+        ],
+    }
     column_list = (
         'state', 'dag_id', 'execution_date', 'run_id', 'external_trigger')
     column_filters = column_list
