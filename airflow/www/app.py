@@ -1104,50 +1104,42 @@ class Airflow(BaseView):
 
         session = settings.Session()
 
-        start_date = dag.start_date
-        if not start_date and 'start_date' in dag.default_args:
-            start_date = dag.default_args['start_date']
-
         base_date = request.args.get('base_date')
         num_runs = request.args.get('num_runs')
         num_runs = int(num_runs) if num_runs else 25
 
-        if not base_date:
-            # New DAGs will not have a latest execution date
-            if dag.latest_execution_date:
-                dt = dag.following_schedule(dag.latest_execution_date)
-                base_date = dag.following_schedule(dt)
-            else:
-                base_date = datetime.now()
-        else:
+        if base_date:
             base_date = dateutil.parser.parse(base_date)
-
-        start_date = dag.start_date
-        if not start_date and 'start_date' in dag.default_args:
-            start_date = dag.default_args['start_date']
-
-        # if a specific base_date is requested, don't round it
-        if not request.args.get('base_date'):
-            if start_date:
-                base_date = utils.round_time(
-                    base_date, dag.schedule_interval, start_date)
-            else:
-                base_date = utils.round_time(base_date, dag.schedule_interval)
-
-        form = TreeForm(data={'base_date': base_date, 'num_runs': num_runs})
-
-        from_date = base_date
-        for i in range(num_runs):
-            from_date = dag.previous_schedule(from_date)
+        else:
+            base_date = dag.latest_execution_date or datetime.now()
 
         dates = utils.date_range(
-            from_date, base_date, dag.schedule_interval)
+            base_date, num=-abs(num_runs), delta=dag.schedule_interval)
+
+        DR = models.DagRun
+        dag_runs = (
+            session.query(DR)
+            .filter(
+                DR.dag_id==dag.dag_id,
+                DR.execution_date>=dates[0],
+                DR.execution_date<=dates[-1])
+            .all()
+        )
+        dag_runs = {
+            dr.execution_date: utils.alchemy_to_dict(dr) for dr in dag_runs}
+
+        tis = dag.get_task_instances(
+                session, start_date=dates[0], end_date=dates[-1])
+        dates = sorted(list({ti.execution_date for ti in tis}))
+        max_date = max([ti.execution_date for ti in tis])
         task_instances = {}
-        for ti in dag.get_task_instances(session, from_date):
-            task_instances[(ti.task_id, ti.execution_date)] = ti
+        for ti in tis:
+            tid = utils.alchemy_to_dict(ti)
+            dr = dag_runs.get(ti.execution_date)
+            tid['external_trigger'] = dr['external_trigger'] if dr else False
+            task_instances[(ti.task_id, ti.execution_date)] = tid
 
         expanded = []
-
         # The default recursion traces every path so that tree view has full
         # expand/collapse functionality. After 5,000 nodes we stop and fall
         # back on a quick DFS search for performance. See PR #320.
@@ -1174,8 +1166,7 @@ class Airflow(BaseView):
             return {
                 'name': task.task_id,
                 'instances': [
-                    utils.alchemy_to_dict(
-                        task_instances.get((task.task_id, d))) or {
+                        task_instances.get((task.task_id, d)) or {
                             'execution_date': d.isoformat(),
                             'task_id': task.task_id
                         }
@@ -1190,24 +1181,19 @@ class Airflow(BaseView):
                 'depends_on_past': task.depends_on_past,
                 'ui_color': task.ui_color,
             }
-
-        if len(dag.roots) > 1:
-            # d3 likes a single root
-            data = {
-                'name': 'root',
-                'instances': [],
-                'children': [recurse_nodes(t, set()) for t in dag.roots]
-            }
-        elif len(dag.roots) == 1:
-            data = recurse_nodes(dag.roots[0], set())
-        else:
-            flash("No tasks found.", "error")
-            data = []
+        data = {
+            'name': '[DAG]',
+            'children': [recurse_nodes(t, set()) for t in dag.roots],
+            'instances': [
+                dag_runs.get(d) or {'execution_date': d.isoformat()}
+                for d in dates],
+        }
 
         data = json.dumps(data, indent=4, default=utils.json_ser)
         session.commit()
         session.close()
 
+        form = TreeForm(data={'base_date': max_date, 'num_runs': num_runs})
         return self.render(
             'airflow/tree.html',
             operators=sorted(
