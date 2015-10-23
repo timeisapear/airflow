@@ -10,6 +10,14 @@
 * python_path = C:/Users/nmm/DRA/bin/WinPython-64bit-2.7.10.2/python-2.7.10.amd64/python.exe
 * airflow_path = C:/Users/nmm/DRA/bin/WinPython-64bit-2.7.10.2/python-2.7.10.amd64/Scripts/airflow
 
+# Update mysql airflow pickle table
+
+* alter table airflow.dag_pickle modify pickle longblob;
+
+# Update conf/prdata.py in dra_bend global_report_conf
+
+* 'root_dir': os.path.join('Users','nmm','DRA','dra_bend')
+
 # Airflow
 
 Airflow is a platform to programmatically author, schedule and monitor 
