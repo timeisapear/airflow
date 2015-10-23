@@ -428,7 +428,7 @@ class Airflow(BaseView):
                 except Exception as e:
                     raise AirflowException(str(e))
                 df[df.columns[x_col]] = df[df.columns[x_col]].apply(
-                    lambda x: int(x.strftime("%s")) * 1000)
+                    lambda x: (t-datetime(1970,1,1)).total_seconds())
 
             series = []
             colorAxis = None
@@ -785,6 +785,7 @@ class Airflow(BaseView):
     def log(self):
         BASE_LOG_FOLDER = os.path.expanduser(
             conf.get('core', 'BASE_LOG_FOLDER'))
+        print("BASE_LOG_FOLDER", BASE_LOG_FOLDER)
         dag_id = request.args.get('dag_id')
         task_id = request.args.get('task_id')
         execution_date = request.args.get('execution_date')
@@ -806,6 +807,9 @@ class Airflow(BaseView):
             host = ti.hostname
             if socket.gethostname() == host:
                 try:
+                    if os.name is 'nt':
+                        loc = loc.replace(":", "_").replace("_",":",1)
+                    print ("loc", loc)
                     f = open(loc)
                     log += "".join(f.readlines())
                     f.close()
@@ -1390,8 +1394,8 @@ class Airflow(BaseView):
             color = State.color(ti.state)
             data.append({
                 'x': i,
-                'low': int(ti.start_date.strftime('%s')) * 1000,
-                'high': int(end_date.strftime('%s')) * 1000,
+                'low': int((ti.start_date-datetime(1970,1,1)).total_seconds()),
+                'high': int((end_date-datetime(1970,1,1)).total_seconds()),
                 'color': color,
             })
         height = (len(tis) * 25) + 50

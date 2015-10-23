@@ -294,7 +294,7 @@ if 'AIRFLOW_CONFIG' not in os.environ:
     if os.path.isfile(os.path.expanduser('~/airflow.cfg')):
         AIRFLOW_CONFIG = os.path.expanduser('~/airflow.cfg')
     else:
-        AIRFLOW_CONFIG = AIRFLOW_HOME + '/airflow.cfg'
+        AIRFLOW_CONFIG = os.path.join(AIRFLOW_HOME, 'airflow.cfg')
 else:
     AIRFLOW_CONFIG = os.environ['AIRFLOW_CONFIG']
 
@@ -310,7 +310,7 @@ if not os.path.isfile(AIRFLOW_CONFIG):
     f.write(DEFAULT_CONFIG.format(**locals()))
     f.close()
 
-TEST_CONFIG_FILE = AIRFLOW_HOME + '/unittests.cfg'
+TEST_CONFIG_FILE = os.path.join(AIRFLOW_HOME,'unittests.cfg')
 if not os.path.isfile(TEST_CONFIG_FILE):
     logging.info("Creating new config file in: " + TEST_CONFIG_FILE)
     f = open(TEST_CONFIG_FILE, 'w')

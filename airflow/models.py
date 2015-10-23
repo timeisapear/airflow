@@ -103,7 +103,7 @@ class DagBag(object):
             include_examples=conf.getboolean('core', 'LOAD_EXAMPLES'),
             sync_to_db=False):
 
-        dag_folder = dag_folder or DAGS_FOLDER
+        dag_folder = DAGS_FOLDER
         logging.info("Filling up the DagBag from " + dag_folder)
         self.dag_folder = dag_folder
         self.dags = {}
@@ -174,8 +174,8 @@ class DagBag(object):
                 logging.info("Importing " + filepath)
                 if mod_name in sys.modules:
                     del sys.modules[mod_name]
-                with utils.timeout(30):
-                    m = imp.load_source(mod_name, filepath)
+                # with utils.timeout(30):
+                m = imp.load_source(mod_name, filepath)
             except Exception as e:
                 logging.error("Failed to import: " + filepath)
                 self.import_errors[filepath] = e
@@ -516,8 +516,14 @@ class TaskInstance(Base):
         subdir = ""
         if not pickle and self.task.dag and self.task.dag.full_filepath:
             subdir = "-sd DAGS_FOLDER/{0}".format(self.task.dag.filepath)
+
+        execute = ""
+        if conf.get('core', 'PYTHON_PATH') and conf.get('core', 'AIRFLOW_PATH'):
+            execute = conf.get('core', 'PYTHON_PATH') + " " + conf.get('core', 'AIRFLOW_PATH') + " run "
+        else:
+            execute = "airflow run "
         return (
-            "airflow run "
+            execute+""
             "{self.dag_id} {self.task_id} {iso} "
             "{mark_success} "
             "{pickle} "
@@ -1869,8 +1875,12 @@ class DAG(object):
         """
         File location of where the dag object is instantiated
         """
-        fn = self.full_filepath.replace(DAGS_FOLDER + '/', '')
-        fn = fn.replace(os.path.dirname(__file__) + '/', '')
+        drive, path_and_file = os.path.splitdrive(self.full_filepath)
+        path, fn = os.path.split(path_and_file)
+        # fn = self.full_filepath.replace(DAGS_FOLDER + re.'/', '')
+        # print("fn", fn)
+        # fn = fn.replace(os.path.dirname(__file__) + '/', '')
+        # print("fn", fn)
         return fn
 
     @property

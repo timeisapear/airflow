@@ -76,6 +76,7 @@ def run(args):
         os.makedirs(directory)
     args.execution_date = dateutil.parser.parse(args.execution_date)
     iso = args.execution_date.isoformat()
+    iso = iso.replace(":","_")
     filename = "{directory}/{iso}".format(**locals())
     subdir = None
     if args.subdir:
