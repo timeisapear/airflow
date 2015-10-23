@@ -1,8 +1,14 @@
 # Important Windows environment settings
-*AIRFLOW_HOME=C:/Users/nmm/DRA/dra_bend/api2/airflow
-*BASE_LOG_FOLDER=C:/Users/nmm/DRA/dra_bend/api2/airflow
-*DAGS_FOLDER=C:/Users/nmm/DRA/dra_bend
-*Must add Python executeable to system PATH
+
+* AIRFLOW_HOME=C:/Users/nmm/DRA/dra_bend/api2/airflow
+* BASE_LOG_FOLDER=C:/Users/nmm/DRA/dra_bend/api2/airflow
+* DAGS_FOLDER=C:/Users/nmm/DRA/dra_bend
+* Must add Python executeable to system PATH
+
+# Additions to airflow.cfg
+
+* python_path = C:/Users/nmm/DRA/bin/WinPython-64bit-2.7.10.2/python-2.7.10.amd64/python.exe
+* airflow_path = C:/Users/nmm/DRA/bin/WinPython-64bit-2.7.10.2/python-2.7.10.amd64/Scripts/airflow
 
 # Airflow
 
