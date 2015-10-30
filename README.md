@@ -10,6 +10,11 @@
 * python_path = C:/Users/nmm/DRA/bin/WinPython-64bit-2.7.10.2/python-2.7.10.amd64/python.exe
 * airflow_path = C:/Users/nmm/DRA/bin/WinPython-64bit-2.7.10.2/python-2.7.10.amd64/Scripts/airflow
 
+# Install precompiled mysqlDb for Windows
+
+* http://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python
+* pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
+
 # Update mysql airflow pickle table
 
 * alter table airflow.dag_pickle modify pickle longblob;
@@ -17,6 +22,10 @@
 # Update conf/prdata.py in dra_bend global_report_conf
 
 * 'root_dir': os.path.join('Users','nmm','DRA','dra_bend')
+
+# Update one_day.py in dra_bend
+
+* L32
 
 # Airflow
 
