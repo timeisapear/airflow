@@ -23,11 +23,14 @@
 
 * 'root_dir': os.path.join('Users','nmm','DRA','dra_bend')
 
-# Update one_day.py in dra_bend
+# Update prefix_db one_day.py in dra_bend
 
 * L32
 
+# Install git-bash and add git/bin path to windows
+
 # Airflow
+
 
 Airflow is a platform to programmatically author, schedule and monitor 
 data pipelines.
